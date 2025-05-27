@@ -54,7 +54,7 @@ def build_global(company_name):
     return GLOBAL_PROMPT
 
 # Sections to generate
-TESTING = False
+TESTING = True
 if TESTING:
     # tweaking
     SECTIONS = [
