@@ -16,6 +16,7 @@ import openai
 
 from dotenv import load_dotenv
 from datetime import datetime       # for file signature
+from io import BytesIO
 
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
@@ -232,7 +233,7 @@ def set_landscape(document):
     section.orientation = WD_ORIENT.LANDSCAPE
 
 # Main writing function
-def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, company_name, status_area=None):
+def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, company_name, status_area=None) -> BytesIO:
     doc = Document()
     set_landscape(doc)
 
@@ -306,8 +307,11 @@ def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, c
     team_run = team_para.add_run("Momentum Mind Lab Team")
     team_run.font.name = 'Calibri'
     team_run.font.size = Pt(12)
-    doc.save(file_path)
-    print(f"Report saved to: {file_path}")
+
+    buffer = BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)  # Move back to the beginning so Streamlit can read it
+    return buffer
 
 # Call OpenAI API to generate a section
 def generate_section(full_prompt, token_limit, model=MODEL):
@@ -338,13 +342,13 @@ def read_minutes(file_path):
     return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
 
 # Shitty Wrapper Function (I <3 Overhead)
-def generate_strategy_docx(minutes, file_path, company_name, status_area=None):
+def generate_strategy_docx(minutes, file_path, company_name, status_area=None) -> BytesIO:
     with open("test_prompts.json", "r", encoding="utf-8") as f:
         prompts = json.load(f)
 
     GLOBAL_PROMPT = build_global(company_name)
 
-    write_to_docx(
+    buffer = write_to_docx(
     file_path=file_path,
     global_prompt=GLOBAL_PROMPT,
     minutes=minutes,
@@ -352,3 +356,5 @@ def generate_strategy_docx(minutes, file_path, company_name, status_area=None):
     sections=SECTIONS,
     company_name=company_name,
     status_area=status_area)
+
+    return buffer

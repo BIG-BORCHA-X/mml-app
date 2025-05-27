@@ -133,7 +133,13 @@ if uploaded_file and company_name:
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M")
             action_filename = f"{company_name} - Action Plan - {timestamp}.docx"
-            write_action_plan_docx(action_filename, raw_rows)
+            docx_buffer = write_action_plan_docx(action_filename, raw_rows)
+
+            st.download_button(
+                label="📄 Download Action Plan",
+                data=docx_buffer,
+                file_name=action_filename,
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
         st.success(f"✅ Action Plan saved as: {action_filename}")
 
@@ -143,7 +149,12 @@ if uploaded_file and company_name:
         with st.spinner("Generating Strategy Report..."):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M")
             strategy_filename = f"{company_name} - Strategy Report - {timestamp}.docx"
-            generate_strategy_docx(minutes, strategy_filename, company_name, status_area)
+            docx_buffer2 = generate_strategy_docx(minutes, strategy_filename, company_name, status_area)
+            st.download_button(
+                label="📄 Download Strategy Report",
+                data=docx_buffer2,
+                file_name=strategy_filename,
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
             status_area.text("")
         st.success(f"📄 Strategy Report saved as: {strategy_filename}")
 

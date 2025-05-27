@@ -1,6 +1,7 @@
 import json
 import re
 from datetime import datetime, timedelta
+from io import BytesIO
 
 from docx import Document
 from docx.shared import Pt, Inches, RGBColor
@@ -66,7 +67,7 @@ def convert_when_to_date(_):
     formatted_date = f"{target.strftime('%B')} {day}{suffix}"
     return formatted_date
 
-def write_action_plan_docx(file_path, action_plan):
+def write_action_plan_docx(file_path, action_plan) -> BytesIO:
     doc = Document()
     set_landscape_a4(doc)
 
@@ -139,5 +140,7 @@ def write_action_plan_docx(file_path, action_plan):
                     run.bold = True
 
     # Save file
-    doc.save(file_path)
-    print(f"✅ Saved: {file_path}")
+    buffer = BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)  # Move back to the beginning so Streamlit can read it
+    return buffer
