@@ -66,8 +66,9 @@ Each row should contain a high-priority action the business should take, based o
 
 Before generating the actions:
 - Read the workshop capture below
-- Extract the business's **key focus areas** (they may be labelled "Focus Areas" or "Actions" or "Action Plan")
+- Extract the business's **key focus areas** (they may be labelled "Focus Areas", "Actions", or "Action Plan")
 - Then generate **one action per focus area**, ordered by priority
+- If fewer than 6 focus areas are found, add additional actions based on any other important themes or needs identified in the workshop (to ensure at least 6 total actions are included)
 
 Instructions:
 - The “How” field should use **concise bullet points**, each a single sentence (no full paragraphs)
@@ -141,7 +142,7 @@ if uploaded_file and company_name:
                 file_name=action_filename,
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
-        st.success(f"✅ Action Plan saved as: {action_filename}")
+        st.success(f"✅ Action Plan Generated as: {action_filename}")
 
     st.header("📄 Generate Strategy Report")
     if st.button("Generate Strategy Report"):
@@ -156,7 +157,7 @@ if uploaded_file and company_name:
                 file_name=strategy_filename,
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
             status_area.text("")
-        st.success(f"📄 Strategy Report saved as: {strategy_filename}")
+        st.success(f"📄 Strategy Report Generated as: {strategy_filename}")
 
 # streamlit run app_test.py
 

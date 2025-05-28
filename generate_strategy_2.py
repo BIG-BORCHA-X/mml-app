@@ -78,16 +78,24 @@ else:
         ["Value Proposition", 200+50],
         ["Channels", 150+50],
         ["Customer Relationships", 150+50],
-        ["Revenue Streams", +50],   # Smallest section in Sample
-        ["Key Resources", 150+50],
-        ["Key Activities", 150+50],
-        ["Key Partners", 150+50],
+        ["Revenue Streams", 150+50],   # Smallest section in Sample
+        ["Key Resources", 200+50],
+        ["Key Activities", 200+50],
+        ["Key Partners", 200+50],
         ["Cost Structure", 175+50],
         ["Recommendations", 600],
         ["Conclusion", 150+50]
     ]
 
+BM_SECTIONS = ["Customer Segments", "Value Proposition", "Channels", "Customer Relationships",
+               "Revenue Streams", "Key Resources", "Key Activities", "Key Partners", "Cost Structure"]
+
 # ----------- Functions -----------
+def generate_static_approach_section(company_name):
+    # Section is "Cookie Cutter", indentical each time except client name.
+    content = f"Momentum Mind Lab engaged with you to evaluate the current position of {company_name} and develop a comprehensive organisational model and process for taking this forward. We embraced a customer-centred approach to developing solutions following the principles of Design Thinking (DT). We started the process by discovering your goals, expectations, strengths and capabilities. This allowed us to assess what is moving the business forward and what is holding it back, subsequently acknowledging the need to focus on specific aspects of the business in consideration of the goals and capabilities of {company_name}.\n\nAs part of the definition process, we mapped the organisation's structural model to gain clarity about the different elements of the organisation. This entailed defining why the business was started, what the product is as well as who it was created for. This provided a foundation for a macro-level organisational process mapping for identifying the specific areas of the organisation that need to be prioritised to increase efficiency. As a result, key areas of focus were defined, and a clear and detailed strategic action plan was developed for you, which indicates what actions need to be taken, what are the tasks associated with each action, and success criteria to monitor your progress."
+    return content
+
 def is_bullet_point(line):
     stripped = line.strip()
     return bool(re.match(r"^[-–—•●]\s+", stripped))
@@ -256,12 +264,15 @@ def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, c
     paragraph_format.line_spacing = 1.3
 
     # company_name = extract_company_name(minutes)
-    insert_cover_page(doc, company_name=company_name, logo_path="logo3.png")
+    insert_cover_page(doc, company_name=company_name, logo_path="Logo3.png")
     # Currently jsut a blank page
     insert_table_of_contents(doc)
 
     # Prompts
     prompt_values = list(prompt_library.values())
+
+    # Track whether we've already added the "Business Model" heading
+    inserted_bm_heading = False
 
     for i, (heading, token_limit) in enumerate(sections):
         section_prompt = prompt_values[i]
@@ -270,15 +281,44 @@ def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, c
             status_area.text(f"Generating {heading}...")
         else:
             print(f"Generating section: {heading}...")
+        
         content = generate_section(full_prompt, token_limit, model=MODEL)
 
+        if heading == "Our Approach":
+            content = generate_static_approach_section(company_name)
+        else:
+            full_prompt = build_prompt(global_prompt, minutes, section_prompt, token_limit)
+            content = generate_section(full_prompt, token_limit, model=MODEL)
+
         # Add styled heading
-        heading_para = doc.add_paragraph(heading, style='Heading 1')
-        run = heading_para.runs[0]
-        run.font.name = 'Calibri'
-        run.font.size = Pt(34)
-        run.font.color.rgb = RGBColor(255, 153, 0)
-        run.bold = True
+        if heading in BM_SECTIONS:
+            # Insert "Business Model" heading once
+            if not inserted_bm_heading:
+                bm_para = doc.add_paragraph()
+                bm_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                bm_run = bm_para.add_run("Business Model")
+                bm_run.font.name = 'Calibri'
+                bm_run.font.size = Pt(34)
+                bm_run.font.color.rgb = RGBColor(255, 153, 0)
+                bm_run.bold = True
+                inserted_bm_heading = True
+
+            # Create unstyled heading (NOT "Heading 1") for BM section
+            heading_para = doc.add_paragraph()
+            run = heading_para.add_run(heading)
+            run.font.name = 'Calibri'
+            run.font.size = Pt(34)
+            run.font.color.rgb = RGBColor(255, 153, 0)
+            run.bold = True
+
+        else:
+            # Styled heading that WILL appear in the table of contents
+            heading_para = doc.add_paragraph(heading, style='Heading 1')
+            run = heading_para.runs[0]
+            run.font.name = 'Calibri'
+            run.font.size = Pt(34)
+            run.font.color.rgb = RGBColor(255, 153, 0)
+            run.bold = True
 
         # Add normal body text
         # doc.add_paragraph(content)
@@ -343,7 +383,7 @@ def read_minutes(file_path):
 
 # Shitty Wrapper Function (I <3 Overhead)
 def generate_strategy_docx(minutes, file_path, company_name, status_area=None) -> BytesIO:
-    with open("test_prompts.json", "r", encoding="utf-8") as f:
+    with open("prompts.json", "r", encoding="utf-8") as f:
         prompts = json.load(f)
 
     GLOBAL_PROMPT = build_global(company_name)
