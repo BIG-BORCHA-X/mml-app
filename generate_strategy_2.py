@@ -83,7 +83,7 @@ else:
         ["Key Activities", 200+50],
         ["Key Partners", 200+50],
         ["Cost Structure", 175+50],
-        ["Recommendations", 600],
+        ["Recommendations", 600+50],
         ["Conclusion", 150+50]
     ]
 
