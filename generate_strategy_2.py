@@ -59,7 +59,8 @@ if TESTING:
     # tweaking
     SECTIONS = [
         ["Our Approach", 250],
-        ["Vision", 125+50],
+        ["Scope of Project", 300],
+        ["Vision", 150+75],
         ["Conclusion", 150+50]
     ]
 else:
@@ -68,17 +69,17 @@ else:
         ["Our Approach", 250],
         ["Scope of Project", 300],
         ["Definition of Success", 420],
-        ["Purpose of Starting the Business", 125+50],
-        ["Vision", 125+50],
+        ["Purpose of Starting the Business", 150+750],
+        ["Vision", 150+75],
         ["Mission", 200+50],
-        ["Goals", 125+50],
-        ["Product/Service Offering", 125+50],
+        ["Goals", 200+25],
+        ["Product/Service Offering", 150+75],
         # Business Model Segments until Recommendations
-        ["Customer Segments", 170+50],
+        ["Customer Segments", 150+75],
         ["Value Proposition", 200+50],
-        ["Channels", 150+50],
-        ["Customer Relationships", 150+50],
-        ["Revenue Streams", 150+50],   # Smallest section in Sample
+        ["Channels", 150+75],
+        ["Customer Relationships", 150+75],
+        ["Revenue Streams", 150+75],   # Smallest section in Sample
         ["Key Resources", 200+50],
         ["Key Activities", 200+50],
         ["Key Partners", 200+50],
@@ -100,6 +101,12 @@ def normalize_newlines(text: str) -> str:
 def generate_static_approach_section(company_name):
     # Section is "Cookie Cutter", indentical each time except client name.
     content = f"Momentum Mind Lab engaged with you to evaluate the current position of {company_name} and develop a comprehensive organisational model and process for taking this forward. We embraced a customer-centred approach to developing solutions following the principles of Design Thinking (DT). We started the process by discovering your goals, expectations, strengths and capabilities. This allowed us to assess what is moving the business forward and what is holding it back, subsequently acknowledging the need to focus on specific aspects of the business in consideration of the goals and capabilities of {company_name}.\n\nAs part of the definition process, we mapped the organisation's structural model to gain clarity about the different elements of the organisation. This entailed defining why the business was started, what the product is as well as who it was created for. This provided a foundation for a macro-level organisational process mapping for identifying the specific areas of the organisation that need to be prioritised to increase efficiency. As a result, key areas of focus were defined, and a clear and detailed strategic action plan was developed for you, which indicates what actions need to be taken, what are the tasks associated with each action, and success criteria to monitor your progress."
+    return content
+
+def generate_static_scope_section(company_name):
+    plural_company = f"{company_name}'s"
+    quoted_company = f'"{plural_company}"'
+    content = f"Dear {company_name},\nThank you for giving us the opportunity to work with you during this workshop. Your enthusiastic and committed participation in the workshop was instrumental in shaping this report. Your dedication to {quoted_company} mission and your willingness to engage in collaborative strategic planning has been truly inspiring.\n"
     return content
 
 def is_bullet_point(line):
@@ -288,6 +295,13 @@ def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, c
         
         if heading == "Our Approach":
             content = generate_static_approach_section(company_name)
+        elif heading == "Scope of Project":
+            section_prompt = prompt_values[i]
+            full_prompt = build_prompt(global_prompt, minutes, section_prompt, token_limit)
+            static_content = generate_static_scope_section(company_name)
+            gen_content = generate_section(full_prompt, token_limit, model=MODEL)
+            raw_content = static_content + "\n" + gen_content
+            content = normalize_newlines(raw_content)
         else:
             section_prompt = prompt_values[i]
             full_prompt = build_prompt(global_prompt, minutes, section_prompt, token_limit)
