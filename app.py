@@ -55,19 +55,25 @@ def build_prompt(minutes, company_name):
     return f"""
 You are a professional business strategist who has just run a workshop for a business called "{company_name}". Below is the capture of their business planning workshop.
 
+All writing should use British English spelling and conventions. Where appropriate, expand upon the ideas captured during the workshop to ensure clarity, completeness, and usefulness.
+
 Your task is to create a structured Action Plan with the following columns:
+- Priority
 - What
 - Why
 - How
 - When
 - Success Criteria
 
-Each row should contain a high-priority action the business should take, based on their stated needs.
+Order the actions by priority:
+- Red: High Priority
+- Yellow: Medium
+- Green: Low
 
 Before generating the actions:
 - Read the workshop capture below
 - Extract the business's **key focus areas** (they may be labelled "Focus Areas", "Actions", or "Action Plan")
-- Then generate **one action per focus area**, ordered by priority
+- Then generate **one action per focus area**, ordered by priority (high first, low last)
 - If fewer than 6 focus areas are found, add additional actions based on any other important themes or needs identified in the workshop (to ensure at least 6 total actions are included)
 
 Instructions:
@@ -78,6 +84,7 @@ Instructions:
 Return the result as a list of Python dictionaries, one per row, like this:
 [
   {{
+    "Priority: "...",
     "What": "...",
     "Why": "...",
     "How": ["...bullet point...", "...bullet point..."],

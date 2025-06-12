@@ -106,7 +106,7 @@ def generate_static_approach_section(company_name):
 def generate_static_scope_section(company_name):
     plural_company = f"{company_name}'s"
     quoted_company = f'"{plural_company}"'
-    content = f"Dear {company_name},\nThank you for giving us the opportunity to work with you during this workshop. Your enthusiastic and committed participation in the workshop was instrumental in shaping this report. Your dedication to {quoted_company} mission and your willingness to engage in collaborative strategic planning has been truly inspiring.\n"
+    content = f"Dear {company_name},\n\nThank you for giving us the opportunity to work with you during this workshop. Your enthusiastic and committed participation in the workshop was instrumental in shaping this report. Your dedication to {quoted_company} mission and your willingness to engage in collaborative strategic planning has been truly inspiring.\n"
     return content
 
 def is_bullet_point(line):
@@ -200,6 +200,7 @@ def insert_table_of_contents(doc):
 
 def add_markdown_bold_paragraph(doc, text, style="Normal"):
     paragraph = doc.add_paragraph(style=style)
+    paragraph.paragraph_format.space_after = Pt(0)
 
     # Indent bullets only
     if style == "List Bullet":
@@ -274,6 +275,7 @@ def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, c
 
     # Set global line spacing to 1.3
     paragraph_format = style.paragraph_format
+    paragraph_format.space_after = Pt(0)
     paragraph_format.line_spacing = 1.3
 
     # company_name = extract_company_name(minutes)
@@ -300,13 +302,17 @@ def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, c
             full_prompt = build_prompt(global_prompt, minutes, section_prompt, token_limit)
             static_content = generate_static_scope_section(company_name)
             gen_content = generate_section(full_prompt, token_limit, model=MODEL)
-            raw_content = static_content + "\n" + gen_content
-            content = normalize_newlines(raw_content)
+            # raw_content = static_content + "\n" + gen_content
+            # content = normalize_newlines(raw_content)
+
+            content = static_content + "\n" + gen_content
         else:
             section_prompt = prompt_values[i]
             full_prompt = build_prompt(global_prompt, minutes, section_prompt, token_limit)
-            raw_content = generate_section(full_prompt, token_limit, model=MODEL)
-            content = normalize_newlines(raw_content)
+            # raw_content = generate_section(full_prompt, token_limit, model=MODEL)
+            # content = normalize_newlines(raw_content)
+
+            content = generate_section(full_prompt, token_limit, model=MODEL)
 
         # Add styled heading
         if heading in BM_SECTIONS:

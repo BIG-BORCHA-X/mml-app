@@ -81,8 +81,12 @@ def write_action_plan_docx(file_path, action_plan) -> BytesIO:
     run.font.color.rgb = RGBColor(255, 153, 0)  # Orange
 
     # Table
-    headers = ["What", "Why", "How", "When", "Success Criteria"]
-    col_widths = [1.25, 1.8, 3.4, 1.27, 1.87]
+    # headers = ["What", "Why", "How", "When", "Success Criteria"]
+    # col_widths = [1.25, 1.8, 3.4, 1.27, 1.87]
+    headers = ["Priority", "What", "Why", "How", "When", "Success Criteria"]
+    raw_col_widths = [1.72, 3.62, 5.24, 6.27, 3.28, 4.37]
+    col_widths = [x/2.54 for x in raw_col_widths]
+    print(col_widths)
     table = doc.add_table(rows=1, cols=len(headers))
     table.style = 'Table Grid'
     table.autofit = True
@@ -107,11 +111,18 @@ def write_action_plan_docx(file_path, action_plan) -> BytesIO:
     trHeight.set(ns.qn('w:hRule'), 'exact')
     trPr.append(trHeight)
 
+    # Priority Emojies
+    priority_map = {
+        "Red": "🔴",
+        "Yellow": "🟡",
+        "Green": "🟢"
+    }
+
     # Action Plan rows
     for idx, row in enumerate(action_plan, start=1):
         row["When"] = convert_when_to_date(row["When"])
         row_cells = table.add_row().cells
-        for i, key in enumerate(["What", "Why", "How", "When", "Success Criteria"]):
+        for i, key in enumerate(headers):
             cell = row_cells[i]
             set_cell_margins(cell)
             
@@ -129,15 +140,36 @@ def write_action_plan_docx(file_path, action_plan) -> BytesIO:
                 para = cell.paragraphs[0]
                 value = str(row[key])
 
-                # Add numbering to "What"
-                if key == "What":
-                    value = f"{idx}. {value}"
+                # Add numbering to "What", add emojis to "Priority"
+                # if key == "What":
+                #     value = f"{idx}. {value}"
+                # elif key == "Priority":
+                #     value = priority_map[value]
+                
+                # Priority plus Numbering
+                if key == "Priority":
+                    value = f"{idx}. {priority_map[value]}"
 
                 run = para.add_run(value)
                 run.font.name = 'Calibri'
                 run.font.size = Pt(12)
-                if key == "What":
+                if key == "What" or key == "Priority":
                     run.bold = True
+
+    # Additional Notes
+    # Notes about priority
+    notes = [
+        "🔴 High priority: Critical for launch, client delivery, or business continuity",
+        "🟡 Medium priority: Important but not immediately time-sensitive",
+        "🟢 Low priority: Valuable for long-term improvements or future planning"
+    ]
+
+    for line in notes:
+        note_para = doc.add_paragraph(line)
+        note_para.paragraph_format.space_after = Pt(0)
+        for run in note_para.runs:
+            run.font.name = 'Calibri'
+            run.font.size = Pt(12)
 
     # Save file
     buffer = BytesIO()
