@@ -7,7 +7,8 @@ import re
 from docx import Document
 from generate_action_plan import write_action_plan_docx
 from generate_strategy_2 import generate_strategy_docx
-from dotenv import load_dotenv
+from generate_one_pager import generate_one_pager_docx
+# from dotenv import load_dotenv
 import tempfile
 
 # MODEL = "gpt-4o-mini"
@@ -22,7 +23,7 @@ CORRECT_PASSWORD = st.secrets["app_password"]
 # Set OpenAI key
 openai.api_key = OPENAI_API_KEY
 
-st.set_page_config(page_title="Action Plan Generator", layout="centered")
+st.set_page_config(page_title="Document Generator", layout="centered")
 
 # === Utilities ===
 def read_minutes(file_path):
@@ -166,14 +167,17 @@ if uploaded_file and company_name:
             status_area.text("")
         st.success(f"📄 Strategy Report Generated as: {strategy_filename}")
 
-# streamlit run app_test.py
-
-# timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-# action_filename = f"Action Plan - {company_name}_{timestamp}.docx"
-
-# timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-# strategy_filename = f"Strategy Report - {company_name}_{timestamp}.docx"
-# status_area = st.empty()
-# generate_strategy_docx(minutes, strategy_filename, status_area)
+    st.header("📄 Generate One-Pager")
+    if st.button("Generate One-Pager"):
+        with st.spinner("Generating One-Pager..."):
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+            one_pager_filename = f"{company_name} - One-Pager - {timestamp}.docx"
+            docx_buffer2 = generate_one_pager_docx(minutes, one_pager_filename, company_name)
+            st.download_button(
+                label="📄 Download One-Pager",
+                data=docx_buffer2,
+                file_name=one_pager_filename,
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        st.success(f"📄 One-Pager Generated as: {one_pager_filename}")
 
 # streamlit run app.py

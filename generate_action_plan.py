@@ -9,6 +9,30 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.section import WD_ORIENT
 from docx.oxml import OxmlElement, ns
 
+def add_markdown_bold_paragraph(doc, text, style="Normal"):
+    paragraph = doc.add_paragraph(style=style)
+    paragraph.paragraph_format.space_after = Pt(0)
+
+    # Indent bullets only
+    if style == "List Bullet":
+        paragraph.paragraph_format.left_indent = Inches(0.5)
+
+    # Split into parts by bold markers (**...**)
+    parts = re.split(r"(\*\*.*?\*\*)", text)
+
+    for part in parts:
+        run = paragraph.add_run()
+        run.font.name = 'Calibri'
+        run.font.size = Pt(12)
+
+        if part.startswith("**") and part.endswith("**"):
+            run.text = part[2:-2]
+            run.bold = True
+        else:
+            run.text = part
+
+    return paragraph
+
 def read_minutes(file_path):
     doc = Document(file_path)
     return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
@@ -42,6 +66,13 @@ def set_column_width(cell, width_inches):
     tcW.set(ns.qn('w:w'), str(int(width_inches * 1440)))
     tcW.set(ns.qn('w:type'), 'dxa')
     tcPr.append(tcW)
+    
+def set_column_width2(table):
+    widths = (Inches(1), Inches(2), Inches(1.5))
+    widths = (Inches(0.68), Inches(1.15), Inches(1.7), Inches(3.1), Inches(1.17), Inches(1.77))
+    for row in table.rows:
+        for idx, width in enumerate(widths):
+            row.cells[idx].width = width
 
 def set_cell_margins(cell, top=102, start=102, bottom=102, end=102):
     tc = cell._tc
@@ -61,10 +92,13 @@ def get_day_suffix(day):
     return {1: "st", 2: "nd", 3: "rd"}.get(last_digit, "th")
 
 def convert_when_to_date(_):
+    startby = datetime.today() + timedelta(days=2)
     target = datetime.today() + timedelta(weeks=4)
-    day = target.day
-    suffix = get_day_suffix(day)
-    formatted_date = f"{target.strftime('%B')} {day}{suffix}"
+    day1 = startby.day
+    suffix1 = get_day_suffix(day1)
+    day2 = target.day
+    suffix2 = get_day_suffix(day2)
+    formatted_date = f"Start {startby.strftime('%B')} {day1}{suffix1}, Complete by {target.strftime('%B')} {day2}{suffix2}"
     return formatted_date
 
 def write_action_plan_docx(file_path, action_plan) -> BytesIO:
@@ -76,26 +110,24 @@ def write_action_plan_docx(file_path, action_plan) -> BytesIO:
     title_para.alignment = WD_ALIGN_PARAGRAPH.LEFT
     run = title_para.add_run("Action Plan")
     run.font.name = 'Calibri'
-    run.font.size = Pt(34)
+    run.font.size = Pt(36)
     run.font.bold = True
     run.font.color.rgb = RGBColor(255, 153, 0)  # Orange
 
     # Table
-    # headers = ["What", "Why", "How", "When", "Success Criteria"]
-    # col_widths = [1.25, 1.8, 3.4, 1.27, 1.87]
     headers = ["Priority", "What", "Why", "How", "When", "Success Criteria"]
     raw_col_widths = [1.72, 3.62, 5.24, 6.27, 3.28, 4.37]
     col_widths = [x/2.54 for x in raw_col_widths]
-    print(col_widths)
     table = doc.add_table(rows=1, cols=len(headers))
     table.style = 'Table Grid'
-    table.autofit = True
+    table.autofit = False
+    table.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     # Header row
     for i, header in enumerate(headers):
         cell = table.cell(0, i)
-        set_column_width(cell, col_widths[i])
-        set_cell_margins(cell)
+        # set_column_width(cell, col_widths[i])
+        # set_cell_margins(cell)
         paragraph = cell.paragraphs[0]
         paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
         run = paragraph.add_run(header)
@@ -103,13 +135,13 @@ def write_action_plan_docx(file_path, action_plan) -> BytesIO:
         run.font.size = Pt(12)
         run.bold = True
 
-    # Then set header row height
-    header_row = table.rows[0]._tr
-    trPr = header_row.get_or_add_trPr()
-    trHeight = OxmlElement('w:trHeight')
-    trHeight.set(ns.qn('w:val'), '518')
-    trHeight.set(ns.qn('w:hRule'), 'exact')
-    trPr.append(trHeight)
+    # # Then set header row height
+    # header_row = table.rows[0]._tr
+    # trPr = header_row.get_or_add_trPr()
+    # trHeight = OxmlElement('w:trHeight')
+    # trHeight.set(ns.qn('w:val'), '518')
+    # trHeight.set(ns.qn('w:hRule'), 'exact')
+    # trPr.append(trHeight)
 
     # Priority Emojies
     priority_map = {
@@ -159,17 +191,26 @@ def write_action_plan_docx(file_path, action_plan) -> BytesIO:
     # Additional Notes
     # Notes about priority
     notes = [
-        "🔴 High priority: Critical for launch, client delivery, or business continuity",
-        "🟡 Medium priority: Important but not immediately time-sensitive",
-        "🟢 Low priority: Valuable for long-term improvements or future planning"
+        "**Key**:",
+        "🔴 **High priority**: Critical for launch, client delivery, or business continuity",
+        "🟡 **Medium priority**: Important but not immediately time-sensitive",
+        "🟢 **Low priority**: Valuable for long-term improvements or future planning"
     ]
 
     for line in notes:
-        note_para = doc.add_paragraph(line)
-        note_para.paragraph_format.space_after = Pt(0)
-        for run in note_para.runs:
-            run.font.name = 'Calibri'
-            run.font.size = Pt(12)
+        stripped = line.strip()
+
+        if not stripped:
+            doc.add_paragraph()  # Maintain spacing
+            continue
+
+        add_markdown_bold_paragraph(doc, stripped)
+
+    # Set Column Width, needs to be performed on ALL cells in grid.
+    for column in range(len(col_widths)):
+        for row in table.columns[column].cells:
+            row.width = Inches(col_widths[column])
+            set_cell_margins(row)
 
     # Save file
     buffer = BytesIO()

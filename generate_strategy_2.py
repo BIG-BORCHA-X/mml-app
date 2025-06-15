@@ -28,8 +28,8 @@ from docx.oxml.ns import qn
 import streamlit as st
 
 # Load API key from .env
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# load_dotenv()
+# openai.api_key = os.getenv("OPENAI_API_KEY")
 
 OPENAI_API_KEY = st.secrets["openai_api_key"]
 CORRECT_PASSWORD = st.secrets["app_password"]
@@ -50,6 +50,8 @@ def build_global(company_name):
     The objective is to generate a well-written, detailed, and structured section of a business strategy report based on the provided workshop minutes. The writing must be clear, actionable, and appropriate for a professional audience.
 
     All writing should use British English spelling and conventions. Where appropriate, expand upon the ideas captured during the workshop to ensure clarity, completeness, and usefulness.
+    
+    Write this in a professional tone using clear, direct language. Avoid overly formal or common ChatGPT phrases like "delve," "poise," "robust," etc.
     """
     return GLOBAL_PROMPT
 
@@ -100,13 +102,13 @@ def normalize_newlines(text: str) -> str:
 
 def generate_static_approach_section(company_name):
     # Section is "Cookie Cutter", indentical each time except client name.
-    content = f"Momentum Mind Lab engaged with you to evaluate the current position of {company_name} and develop a comprehensive organisational model and process for taking this forward. We embraced a customer-centred approach to developing solutions following the principles of Design Thinking (DT). We started the process by discovering your goals, expectations, strengths and capabilities. This allowed us to assess what is moving the business forward and what is holding it back, subsequently acknowledging the need to focus on specific aspects of the business in consideration of the goals and capabilities of {company_name}.\n\nAs part of the definition process, we mapped the organisation's structural model to gain clarity about the different elements of the organisation. This entailed defining why the business was started, what the product is as well as who it was created for. This provided a foundation for a macro-level organisational process mapping for identifying the specific areas of the organisation that need to be prioritised to increase efficiency. As a result, key areas of focus were defined, and a clear and detailed strategic action plan was developed for you, which indicates what actions need to be taken, what are the tasks associated with each action, and success criteria to monitor your progress."
+    content = f"\nMomentum Mind Lab engaged with you to evaluate the current position of {company_name} and develop a comprehensive organisational model and process for taking this forward. We embraced a customer-centred approach to developing solutions following the principles of Design Thinking (DT). We started the process by discovering your goals, expectations, strengths and capabilities. This allowed us to assess what is moving the business forward and what is holding it back, subsequently acknowledging the need to focus on specific aspects of the business in consideration of the goals and capabilities of {company_name}.\n\nAs part of the definition process, we mapped the organisation's structural model to gain clarity about the different elements of the organisation. This entailed defining why the business was started, what the product is as well as who it was created for. This provided a foundation for a macro-level organisational process mapping for identifying the specific areas of the organisation that need to be prioritised to increase efficiency. As a result, key areas of focus were defined, and a clear and detailed strategic action plan was developed for you, which indicates what actions need to be taken, what are the tasks associated with each action, and success criteria to monitor your progress."
     return content
 
 def generate_static_scope_section(company_name):
     plural_company = f"{company_name}'s"
     quoted_company = f'"{plural_company}"'
-    content = f"Dear {company_name},\n\nThank you for giving us the opportunity to work with you during this workshop. Your enthusiastic and committed participation in the workshop was instrumental in shaping this report. Your dedication to {quoted_company} mission and your willingness to engage in collaborative strategic planning has been truly inspiring.\n"
+    content = f"\nDear {company_name},\n\nThank you for giving us the opportunity to work with you during this workshop. Your enthusiastic and committed participation in the workshop was instrumental in shaping this report. Your dedication to {quoted_company} mission and your willingness to engage in collaborative strategic planning has been truly inspiring.\n"
     return content
 
 def is_bullet_point(line):
@@ -313,6 +315,11 @@ def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, c
             # content = normalize_newlines(raw_content)
 
             content = generate_section(full_prompt, token_limit, model=MODEL)
+            # Add in extra new line
+            content = "\n" + content
+
+            if heading == "Conclusion":
+                content = content + "\n"
 
         # Add styled heading
         if heading in BM_SECTIONS:
@@ -368,7 +375,7 @@ def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, c
     insert_logo(doc, "Logo3.png")
     # Add "Momentum Mind Lab Team" below the logo
     team_para = doc.add_paragraph()
-    team_run = team_para.add_run("Momentum Mind Lab Team")
+    team_run = team_para.add_run("\nMomentum Mind Lab Team")
     team_run.font.name = 'Calibri'
     team_run.font.size = Pt(12)
 
