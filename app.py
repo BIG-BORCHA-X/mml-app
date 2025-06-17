@@ -6,7 +6,7 @@ import json
 import re
 from docx import Document
 from generate_action_plan import write_action_plan_docx
-from generate_strategy_2 import generate_strategy_docx
+from generate_strategy_3 import generate_strategy_docx
 from generate_one_pager import generate_one_pager_docx
 # from dotenv import load_dotenv
 import tempfile
