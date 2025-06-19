@@ -38,12 +38,12 @@ CORRECT_PASSWORD = st.secrets["app_password"]
 openai.api_key = OPENAI_API_KEY
 
 # ----------- Config -----------
-# MODEL = "gpt-4o"
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-4o"
+# MODEL = "gpt-4o-mini"
 MAX_TOKENS = 800                                    # Per section - roughly 600-700 words MAX
 
 # Sections to generate
-TESTING = True
+TESTING = False
 if TESTING:
     # tweaking
     SECTIONS = [
