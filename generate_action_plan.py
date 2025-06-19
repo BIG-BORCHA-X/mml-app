@@ -98,7 +98,7 @@ def convert_when_to_date(_):
     suffix1 = get_day_suffix(day1)
     day2 = target.day
     suffix2 = get_day_suffix(day2)
-    formatted_date = f"Start {startby.strftime('%B')} {day1}{suffix1}, Complete by {target.strftime('%B')} {day2}{suffix2}"
+    formatted_date = f"Start {startby.strftime('%B')} {day1}{suffix1}, \n\nComplete by {target.strftime('%B')} {day2}{suffix2}"
     return formatted_date
 
 def write_action_plan_docx(file_path, action_plan) -> BytesIO:
@@ -196,6 +196,9 @@ def write_action_plan_docx(file_path, action_plan) -> BytesIO:
         "🟡 **Medium priority**: Important but not immediately time-sensitive",
         "🟢 **Low priority**: Valuable for long-term improvements or future planning"
     ]
+
+    # Additional spacing before Key:
+    add_markdown_bold_paragraph(doc, "")
 
     for line in notes:
         stripped = line.strip()

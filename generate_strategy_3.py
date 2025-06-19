@@ -38,19 +38,21 @@ CORRECT_PASSWORD = st.secrets["app_password"]
 openai.api_key = OPENAI_API_KEY
 
 # ----------- Config -----------
-MODEL = "gpt-4o"
-# MODEL = "gpt-4o-mini"
+# MODEL = "gpt-4o"
+MODEL = "gpt-4o-mini"
 MAX_TOKENS = 800                                    # Per section - roughly 600-700 words MAX
 
 # Sections to generate
-TESTING = False
+TESTING = True
 if TESTING:
     # tweaking
     SECTIONS = [
         ["Our Approach", 250],
         ["Scope of Project", 300],
-        ["Vision", 150+75],
+        ["Product Service Offering", 150+75],
+        ["Cost Structure", 175+50],
         ["Conclusion", 150+50]
+        
     ]
 else:
     # fr fr
@@ -81,6 +83,25 @@ BM_SECTIONS = ["Customer Segments", "Value Proposition", "Channels", "Customer R
                "Revenue Streams", "Key Resources", "Key Activities", "Key Partners", "Cost Structure"]
 
 # ----------- Functions -----------
+def add_page_number(paragraph):
+    run = paragraph.add_run()
+    fldChar1 = OxmlElement('w:fldChar')
+    fldChar1.set(qn('w:fldCharType'), 'begin')
+
+    instrText = OxmlElement('w:instrText')
+    instrText.text = "PAGE"
+
+    fldChar2 = OxmlElement('w:fldChar')
+    fldChar2.set(qn('w:fldCharType'), 'end')
+
+    run._r.append(fldChar1)
+    run._r.append(instrText)
+    run._r.append(fldChar2)
+
+    # Optional styling
+    run.font.name = 'Calibri'
+    run.font.size = Pt(10)
+
 def clean_heading(heading):
     # Trim leading/trailing whitespace
     heading = heading.strip()
@@ -145,6 +166,7 @@ def find_section_position(minutes: str, heading: str, anchor_phrase="Business St
     return "before" if heading_index < anchor_index else "after"
 
 def smart_capitalize(text):
+    text = text.lower()
     result = ''
     capitalize_next = True
     for char in text:
@@ -299,6 +321,12 @@ def insert_table_of_contents(doc):
      - Solution: Insert a blank page and manually insert ToC and Update it.
     
     """
+    heading_para = doc.add_paragraph()
+    run = heading_para.add_run("Contents Page")
+    run.font.name = 'Calibri'
+    run.font.size = Pt(34)
+    run.font.color.rgb = RGBColor(255, 153, 0)
+    run.bold = True
     # paragraph = doc.add_paragraph()
     # run = paragraph.add_run()
 
@@ -510,6 +538,13 @@ def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, c
     team_run = team_para.add_run("\nMomentum Mind Lab Team")
     team_run.font.name = 'Calibri'
     team_run.font.size = Pt(12)
+
+    # Add page number to footer of *all* sections
+    for section in doc.sections:
+        footer = section.footer
+        paragraph = footer.paragraphs[0]
+        paragraph.alignment = 2  # Right?
+        add_page_number(paragraph)
 
     buffer = BytesIO()
     doc.save(buffer)

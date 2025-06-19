@@ -28,7 +28,7 @@ openai.api_key = OPENAI_API_KEY
 MODEL = "gpt-4o"
 
 def generate_one_pager(company_name, content_dict, output_path) -> BytesIO:
-    doc = Document("template.docx")
+    doc = Document("Template.docx")
     
     # Set to portrait and A4
     section = doc.sections[0]
