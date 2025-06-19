@@ -161,7 +161,7 @@ def find_section_position(minutes: str, heading: str, anchor_phrase="Business St
     if heading_index == -1:
         return "unknown"
     if anchor_index == -1:
-        return "no anchor"
+        return "before"
     
     return "before" if heading_index < anchor_index else "after"
 
