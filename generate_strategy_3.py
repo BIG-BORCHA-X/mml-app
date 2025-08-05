@@ -60,7 +60,7 @@ else:
         ["Our Approach", 250],
         ["Scope of Project", 300],
         ["Definition of Success", 420],
-        ["Purpose of Starting the Business", 150+750],
+        ["Purpose of Starting the Business", 150+75],
         ["Vision", 150+75],
         ["Mission", 200+50],
         ["Goals", 200+25],
@@ -594,5 +594,6 @@ def generate_strategy_docx(minutes, file_path, company_name, status_area=None) -
     sections=SECTIONS,
     company_name=company_name,
     status_area=status_area)
+
 
     return buffer
