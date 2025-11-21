@@ -12,8 +12,9 @@ Should be the last major update before tweaking starts
 import os
 import json
 import re
-import openai
 import time
+import openai
+from openai.error import RateLimitError
 
 from dotenv import load_dotenv
 from datetime import datetime       # for file signature
@@ -472,8 +473,7 @@ def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, c
             full_prompt = build_prompt(global_prompt, minutes, section_prompt, token_limit)
             # raw_content = generate_section(full_prompt, token_limit, model=MODEL)
             # content = normalize_newlines(raw_content)
-            
-            time.sleep(5)   # Sleeping because of Tokens Per Minute Rate limits.
+
             content = generate_section(full_prompt, token_limit, model=MODEL)
             # Add in extra new line
             content = "\n" + content
@@ -555,13 +555,24 @@ def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, c
 
 # Call OpenAI API to generate a section
 def generate_section(full_prompt, token_limit, model=MODEL):
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=[{"role": "user", "content": full_prompt}],
-        max_tokens=int(token_limit * 1.3),  # 30% buffer
-        temperature=0.7  # Slight randomness, can adjust
-    )
-    return response["choices"][0]["message"]["content"]
+    max_retries = 6
+    backoff = 1  # start with 1 second
+
+    for attempt in range(max_retries):
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": full_prompt}],
+                max_tokens=int(token_limit * 1.3),
+                temperature=0.7
+            )
+            return response["choices"][0]["message"]["content"]
+
+        except RateLimitError:
+            if attempt == max_retries - 1:
+                raise  # fail after max retries
+            time.sleep(backoff)
+            backoff *= 2  # exponential backoff
 
 # Optional: Generate all sections in order (if needed later)
 def generate_all_sections(global_prompt, minutes, prompt_library, sections, model=MODEL):
