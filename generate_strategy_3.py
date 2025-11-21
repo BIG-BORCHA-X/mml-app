@@ -13,6 +13,7 @@ import os
 import json
 import re
 import openai
+import time
 
 from dotenv import load_dotenv
 from datetime import datetime       # for file signature
@@ -471,7 +472,8 @@ def write_to_docx(file_path, global_prompt, minutes, prompt_library, sections, c
             full_prompt = build_prompt(global_prompt, minutes, section_prompt, token_limit)
             # raw_content = generate_section(full_prompt, token_limit, model=MODEL)
             # content = normalize_newlines(raw_content)
-
+            
+            time.sleep(5)   # Sleeping because of Tokens Per Minute Rate limits.
             content = generate_section(full_prompt, token_limit, model=MODEL)
             # Add in extra new line
             content = "\n" + content
